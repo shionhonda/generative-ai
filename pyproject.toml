@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Shion Honda <26x.orc.ed5.1hs@gmail.com>"]
 readme = "README.md"
-packages = [{include = "generative_ai"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
