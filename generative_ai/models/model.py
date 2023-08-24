@@ -96,7 +96,7 @@ class GPTBlock(nn.Module):
     def __init__(self, n_head: int, n_embd: int, dropout: float) -> None:
         super().__init__()
         self.prenorm_attn = nn.LayerNorm(n_embd)
-        self.attn = MaskedMultiHeadSelfAttention(
+        self.attn = CausalMultiHeadSelfAttention(
             n_head=n_head, n_embd=n_embd, dropout=dropout
         )
         self.prenorm_mlp = nn.LayerNorm(n_embd)
@@ -108,7 +108,7 @@ class GPTBlock(nn.Module):
         return x
 
 
-class MaskedMultiHeadSelfAttention(nn.Module):
+class CausalMultiHeadSelfAttention(nn.Module):
     def __init__(self, n_head: int, n_embd: int, dropout: float) -> None:
         super().__init__()
         assert n_embd % n_head == 0
@@ -116,9 +116,8 @@ class MaskedMultiHeadSelfAttention(nn.Module):
         self.n_embd = n_embd
         self.dropout = dropout
 
-        self.q = nn.Linear(n_embd, n_embd)
-        self.k = nn.Linear(n_embd, n_embd)
-        self.v = nn.Linear(n_embd, n_embd)
+        # key, query, value projections for all heads, but in a batch
+        self.c_attn = nn.Linear(n_embd, 3 * n_embd)
         self.c_proj = nn.Linear(n_embd, n_embd)
         self.attn_dropout = nn.Dropout(dropout)
         self.resid_dropout = nn.Dropout(dropout)
@@ -130,13 +129,14 @@ class MaskedMultiHeadSelfAttention(nn.Module):
             C,
         ) = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        k = self.k.view(B, T, self.n_head, C // self.n_head).transpose(
+        q, k, v = self.c_attn(x).split(self.n_embd, dim=2)
+        k = k.view(B, T, self.n_head, C // self.n_head).transpose(
             1, 2
         )  # (B, nh, T, hs)
-        q = self.q.view(B, T, self.n_head, C // self.n_head).transpose(
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(
             1, 2
         )  # (B, nh, T, hs)
-        v = self.v.view(B, T, self.n_head, C // self.n_head).transpose(
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(
             1, 2
         )  # (B, nh, T, hs)
 
