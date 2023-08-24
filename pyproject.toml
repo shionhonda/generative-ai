@@ -9,7 +9,8 @@ readme = "README.md"
 python = "^3.11"
 torch = "^2.0.1"
 numpy = "^1.25.0"
-torchtext = "^0.15.2"
+datasets = "^2.14.4"
+tokenizers = "^0.13.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
