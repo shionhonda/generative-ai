@@ -6,14 +6,28 @@ from contextlib import nullcontext
 from datasets import load_dataset
 from tokenizers import Tokenizer
 from pathlib import Path
+from dataclasses import dataclass
 
 CWD = Path(__file__).parent
+
+
+@dataclass
+class CFG:
+    # 51M params
+    block_size = 64
+    n_layer = 8
+    n_head = 8
+    n_embd = 512
+    dropout = 0.0
+    batch_size = 128
+    lr = 1e-3
+    weight_decay = 0.00
 
 
 class GPTDataset(Dataset):
     def __init__(self, tokenizer: Tokenizer, max_length: int) -> None:
         super().__init__()
-        self.data = load_dataset("bookcorpus", split="train")
+        self.data = load_dataset("bookcorpus", split="train")  # 1.0B tokens
         tokenizer.enable_padding(length=max_length + 1)  # add buffer for a single token
         tokenizer.enable_truncation(max_length=max_length)
         self.tokenizer = tokenizer
@@ -51,39 +65,31 @@ def main() -> None:
 
     tokenizer = Tokenizer.from_file(f"{CWD.parent}/artifacts/tokenizer.json")
 
-    # 51M params
-    # model = GPT(
-    #     block_size=512, vocab_size=50304, n_layer=8, n_head=8, n_embd=512, dropout=0.1
-    # )
-    # 5.3M params
     model = GPT(
-        block_size=256,
+        block_size=CFG.block_size,
         vocab_size=tokenizer.get_vocab_size(),
-        n_layer=4,
-        n_head=4,
-        n_embd=256,
-        dropout=0.1,
+        n_layer=CFG.n_layer,
+        n_head=CFG.n_head,
+        n_embd=CFG.n_embd,
+        dropout=CFG.dropout,
     )
     model.to(device)
     scaler = torch.cuda.amp.GradScaler(enabled=(dtype == "float16"))
-    optimizer = torch.optim.AdamW(model.parameters(), kr=1e-4, weight_decay=0.02)
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=CFG.lr, weight_decay=CFG.weight_decay
+    )
     if device_type == "cuda":
         model = torch.compile(model)
 
-    dataset = GPTDataset(tokenizer=tokenizer, max_length=256)
-    dataloader = DataLoader(dataset=dataset, batch_size=24, shuffle=True)
+    dataset = GPTDataset(tokenizer=tokenizer, max_length=CFG.block_size)
+    dataloader = DataLoader(dataset=dataset, batch_size=CFG.batch_size, shuffle=True)
 
     pbar = tqdm(dataloader)
     for step, (X, Y) in enumerate(pbar):
-        # if step % 20 == 0:
-        # idx = model.generate(torch.LongTensor([[78]]), max_new_tokens=7)
-        # sentence = tokenizer.decode(idx.squeeze().detach().cpu().tolist())
-        # print(sentence)
-
-        print(tokenizer.decode(X[0].detach().cpu().tolist()))
-        print(tokenizer.decode(Y[0].detach().cpu().tolist()))
-        print(tokenizer.decode(X[1].detach().cpu().tolist()))
-        print(tokenizer.decode(Y[1].detach().cpu().tolist()))
+        if step % 10 == 0:
+            idx = model.generate(torch.LongTensor([[0]]), max_new_tokens=8)
+            sentence = tokenizer.decode(idx.squeeze().detach().cpu().tolist())
+            print(sentence)
 
         X, Y = X.to(device), Y.to(device)
         with cast_ctx:
