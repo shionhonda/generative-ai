@@ -6,7 +6,7 @@ authors = ["Shion Honda <26x.orc.ed5.1hs@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 torch = "^2.0.1"
 numpy = "^1.25.0"
 datasets = "^2.14.4"
