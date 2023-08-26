@@ -105,13 +105,16 @@ def main() -> None:
         pbar.set_postfix_str(f"loss={loss.item():.2E}")
         log_metrics(step, loss.item())
 
+
 def log_metrics(step: int, loss: float) -> None:
     with open(f"{CWD.parent}/artifacts/loss.csv", "a") as f:
         f.write(f"{step},{loss:.3E}\n")
 
-def log_sentence(step: int, sentence: str) ->None
+
+def log_sentence(step: int, sentence: str) -> None:
     with open(f"{CWD.parent}/artifacts/sentence.txt", "a") as f:
         f.write(f"[{step}] {sentence}\n")
+
 
 if __name__ == "__main__":
     main()
