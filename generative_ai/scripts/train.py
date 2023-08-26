@@ -49,7 +49,7 @@ class GPTDataset(Dataset):
 
 def main() -> None:
     # system settings
-    device = "cuda"
+    device = "cpu"
     dtype = (
         "bfloat16"
         if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
@@ -91,10 +91,17 @@ def main() -> None:
     pbar = tqdm(dataloader)
     for step, (X, Y) in enumerate(pbar):
         if step % CFG.save_interval == 0:
+            torch.save(
+                {
+                    "step": step,
+                    "model": model.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                },
+                f"{CWD.parent}/artifacts/ckpt_step{step}.pt",
+            )
             idx = model.generate(torch.LongTensor([[0]]).to(device), max_new_tokens=8)
             sentence = tokenizer.decode(idx.squeeze().detach().cpu().tolist())
             log_sentence(step, sentence)
-
         X, Y = X.to(device), Y.to(device)
         with cast_ctx:
             _, loss = model(X, Y)
@@ -106,14 +113,14 @@ def main() -> None:
         log_metrics(step, loss.item())
 
 
-def log_metrics(step: int, loss: float) -> None:
-    with open(f"{CWD.parent}/artifacts/loss.csv", "a") as f:
-        f.write(f"{step},{loss:.3E}\n")
-
-
 def log_sentence(step: int, sentence: str) -> None:
     with open(f"{CWD.parent}/artifacts/sentence.txt", "a") as f:
         f.write(f"[{step}] {sentence}\n")
+
+
+def log_metrics(step: int, loss: float) -> None:
+    with open(f"{CWD.parent}/artifacts/loss.csv", "a") as f:
+        f.write(f"{step},{loss:.3E}\n")
 
 
 if __name__ == "__main__":
