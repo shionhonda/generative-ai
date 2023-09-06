@@ -128,7 +128,7 @@ class CausalMultiHeadSelfAttention(nn.Module):
         self.attn_dropout = nn.Dropout(dropout)
         self.resid_dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, padding_token: int = 2) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         (
             B,
             T,
