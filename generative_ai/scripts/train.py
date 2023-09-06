@@ -19,8 +19,8 @@ class CFG:
     n_head = 8
     n_embd = 512
     dropout = 0.1
-    batch_size = 256
-    lr = 1e-4
+    batch_size = 224
+    lr = 5e-4
     weight_decay = 0.01
     save_interval = 1000
 
@@ -49,7 +49,7 @@ class GPTDataset(Dataset):
 
 def main() -> None:
     # system settings
-    device = "cpu"
+    device = "cuda"
     dtype = (
         "bfloat16"
         if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
