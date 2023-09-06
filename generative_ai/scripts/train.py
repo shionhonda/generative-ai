@@ -99,7 +99,12 @@ def main() -> None:
                 },
                 f"{CWD.parent}/artifacts/ckpt_step{step}.pt",
             )
-            idx = model.generate(torch.LongTensor([[0]]).to(device), max_new_tokens=8)
+            idx = model.generate(
+                torch.LongTensor([[0, 6251, 221, 288]]).to(
+                    device
+                ),  # prompt: life is about
+                max_new_tokens=8,
+            )
             sentence = tokenizer.decode(idx.squeeze().detach().cpu().tolist())
             log_sentence(step, sentence)
         X, Y = X.to(device), Y.to(device)

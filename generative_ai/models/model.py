@@ -76,7 +76,11 @@ class GPT(nn.Module):
 
     @torch.no_grad()
     def generate(
-        self, idx: torch.Tensor, max_new_tokens: int, temperature: float = 1.0
+        self,
+        idx: torch.Tensor,
+        max_new_tokens: int,
+        temperature: float = 1.0,
+        idx_eot: int = 1,
     ) -> torch.Tensor:
         for _ in range(max_new_tokens):
             # if the sequence context is growing too long we must crop it at block_size
@@ -88,7 +92,9 @@ class GPT(nn.Module):
             probs = F.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)
             idx = torch.cat((idx, idx_next), dim=1)
-
+            if idx_next == idx_eot:
+                break
+        print(idx)
         return idx
 
 
@@ -122,7 +128,7 @@ class CausalMultiHeadSelfAttention(nn.Module):
         self.attn_dropout = nn.Dropout(dropout)
         self.resid_dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, padding_token: int = 2) -> torch.Tensor:
         (
             B,
             T,
