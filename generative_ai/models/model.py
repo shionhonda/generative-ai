@@ -1,5 +1,5 @@
 """
-Modified from https://github.com/karpathy/nanoGPT/blob/master/model.py
+Copied and modified from https://github.com/karpathy/nanoGPT/blob/master/model.py
 Copyright (c) 2022 Andrej Karpathy
 https://github.com/karpathy/nanoGPT/blob/master/LICENSE
 """
