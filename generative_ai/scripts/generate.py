@@ -27,7 +27,7 @@ def main() -> None:
     print(sentence)
 
 
-def load_model(vocab_size: int, ckpt_path) -> torch.nn.modules:
+def load_model(vocab_size: int, ckpt_path) -> torch.nn.Module:
     model = GPT(
         block_size=CFG.block_size,
         vocab_size=vocab_size,
