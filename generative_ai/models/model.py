@@ -94,7 +94,6 @@ class GPT(nn.Module):
             idx = torch.cat((idx, idx_next), dim=1)
             if idx_next == idx_eot:
                 break
-        print(idx)
         return idx
 
 

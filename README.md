@@ -4,7 +4,7 @@ This repository aims to cover minimal codes for generative models for texts and 
 
 As a first step, I included the code to train a 51M-parameter language model with 11B tokens.
 
-from Sep 6 17:40 -> 18h -> 11:40
+from Sep 6 17:40 -> 18h -> 20:40
 
 ## Prerequisites
 
@@ -28,6 +28,8 @@ To launch training, run:
 ```sh
 poetry run python generative_ai/scripts/train.py
 ```
+
+![](fig/loss.png)
 
 To generate sentences with pretrained model, run:
 

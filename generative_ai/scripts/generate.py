@@ -3,33 +3,54 @@ from train import CFG
 import torch
 from tokenizers import Tokenizer
 from pathlib import Path
+import argparse
 
 CWD = Path(__file__).parent
+CKPT_PATH = f"{CWD.parent}/artifacts/ckpt_step330000.pt"
+DEVICE = "cpu"
 
 
 def main() -> None:
-    # system settings
-    device = "cpu"
+    parser = argparse.ArgumentParser(description="Arguments for generation")
+    parser.add_argument("-p", "--prompt", default="", type=str)
+    args = parser.parse_args()
+
     tokenizer = Tokenizer.from_file(f"{CWD.parent}/artifacts/tokenizer.json")
+    model = load_model(tokenizer.get_vocab_size())
+
+    input_ids = tokenizer.encode("<|startoftext|>" + args.prompt).ids
+    x = model.generate(
+        torch.LongTensor([input_ids]).to(DEVICE),
+        max_new_tokens=60,
+    )
+    sentence = tokenizer.decode(x.squeeze().detach().cpu().tolist())
+    print(sentence)
+
+
+def load_model(vocab_size: int) -> torch.nn.modules:
     model = GPT(
         block_size=CFG.block_size,
-        vocab_size=tokenizer.get_vocab_size(),
+        vocab_size=vocab_size,
         n_layer=CFG.n_layer,
         n_head=CFG.n_head,
         n_embd=CFG.n_embd,
         dropout=CFG.dropout,
     )
 
-    ckpt = torch.load(f"{CWD.parent}/artifacts/ckpt_step15000.pt", map_location=device)
-    model.load_state_dict(ckpt["model"])
+    ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
+    state_dict = delete_unwanted_prefix(ckpt["model"])
+    model.load_state_dict(state_dict)
     model.eval()
-    model.to(device)
-    idx = model.generate(
-        torch.LongTensor([[0, 6251, 221, 288]]).to(device),  # prompt: life is about
-        max_new_tokens=60,
-    )
-    sentence = tokenizer.decode(idx.squeeze().detach().cpu().tolist())
-    print(sentence)
+    model.to(DEVICE)
+    return model
+
+
+def delete_unwanted_prefix(state_dict: dict) -> dict:
+    unwanted_prefix = "_orig_mod."
+    for k, _ in list(state_dict.items()):
+        if k.startswith(unwanted_prefix):
+            state_dict[k[len(unwanted_prefix) :]] = state_dict.pop(k)
+    return state_dict
 
 
 if __name__ == "__main__":
