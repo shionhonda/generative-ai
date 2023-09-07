@@ -38,5 +38,10 @@ poetry run python generative_ai/scripts/train.py
 To generate sentences with pretrained model, run:
 
 ```sh
-poetry run python generative_ai/scripts/generate.py --ckpt generative_ai/artifacts/ckpt_step330000.pt --prompt "life is about"
+$ poetry run python generative_ai/scripts/generate.py --model generative_ai/artifacts/model.pt --prompt "life is about"
+
+> number of parameters: 50.98M
+life is about romance , and love and adrenaline , at the same time .
 ```
+
+`model.pt` can be obtained at [Hugging Face Models](https://huggingface.co/shionhonda/gpt2-51m-bookcorpus).
