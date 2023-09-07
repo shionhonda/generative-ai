@@ -6,17 +6,17 @@ from pathlib import Path
 import argparse
 
 CWD = Path(__file__).parent
-CKPT_PATH = f"{CWD.parent}/artifacts/ckpt_step330000.pt"
 DEVICE = "cpu"
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Arguments for generation")
+    parser.add_argument("-c", "--ckpt", required=True, type=str)
     parser.add_argument("-p", "--prompt", default="", type=str)
     args = parser.parse_args()
 
     tokenizer = Tokenizer.from_file(f"{CWD.parent}/artifacts/tokenizer.json")
-    model = load_model(tokenizer.get_vocab_size())
+    model = load_model(args.ckpt, tokenizer.get_vocab_size())
 
     input_ids = tokenizer.encode("<|startoftext|>" + args.prompt).ids
     x = model.generate(
@@ -27,7 +27,7 @@ def main() -> None:
     print(sentence)
 
 
-def load_model(vocab_size: int) -> torch.nn.modules:
+def load_model(vocab_size: int, ckpt_path) -> torch.nn.modules:
     model = GPT(
         block_size=CFG.block_size,
         vocab_size=vocab_size,
@@ -37,7 +37,7 @@ def load_model(vocab_size: int) -> torch.nn.modules:
         dropout=CFG.dropout,
     )
 
-    ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
+    ckpt = torch.load(ckpt_path, map_location=DEVICE)
     state_dict = delete_unwanted_prefix(ckpt["model"])
     model.load_state_dict(state_dict)
     model.eval()

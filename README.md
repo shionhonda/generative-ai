@@ -38,5 +38,5 @@ poetry run python generative_ai/scripts/train.py
 To generate sentences with pretrained model, run:
 
 ```sh
-poetry run python generative_ai/scripts/generate.py  --prompt "life is about"
+poetry run python generative_ai/scripts/generate.py --ckpt generative_ai/artifacts/ckpt_step330000.pt --prompt "life is about"
 ```
