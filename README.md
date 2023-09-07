@@ -1,21 +1,27 @@
-# generative-ai
+# Generative AI from Scratch
 
-This repository aims to cover minimal codes for generative models for texts and images. They basically depend on PyTorch 2.0, no HugginFace transformers.
+This repository aims to cover minimal codes for generative models for an educational purpose. They basically depend on PyTorch 2.0, no HugginFace transformers.
 
-As a first step, I included the code to train a 51M-parameter language model with 11B tokens.
-
-from Sep 6 17:40 -> 18h -> 20:40
+To begin with, I included the code to train a 51M-parameter language model. I will add image generation and more features in the future.
 
 ## Prerequisites
 
-Tested on:
+This repository is tested on:
 
-Python 3.10.12
-Poetry 1.6.1
-NVIDIA V100 GPU
-CUDA 11.8
+- Python 3.10.12
+- Poetry 1.6.1
+- NVIDIA V100 GPU
+- CUDA 11.8
 
-## Getting Started
+For the Python packages, please refer to [pyproject.toml](pyproject.toml).
+
+## Text Generation
+
+I trained a 51M-parameter language model on 1B tokens from BookCorpus. The training took around 20 hours with a single V100 GPU, which cost around $50. The final model achieved the perplexity of 0.83.
+
+![training curve](fig/loss.png)
+
+### Training Procedure
 
 To create a tokenizer, run:
 
@@ -29,10 +35,8 @@ To launch training, run:
 poetry run python generative_ai/scripts/train.py
 ```
 
-![](fig/loss.png)
-
 To generate sentences with pretrained model, run:
 
 ```sh
-poetry run python generative_ai/scripts/generate.py
+poetry run python generative_ai/scripts/generate.py  --prompt "life is about"
 ```
